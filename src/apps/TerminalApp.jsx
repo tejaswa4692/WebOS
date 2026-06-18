@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 
 const FILES = {
-  'welcome.txt': 'Welcome to TejasWa\'s Epic OS Terminal!\nFeel free to explore our virtual file system.\nType "help" to see available command instructions.',
+  'welcome.txt': 'Welcome to Tejaswa\'s Epic OS Terminal!\nFeel free to explore our virtual file system.\nType "help" to see available command instructions.',
   'system.cfg': 'kernel=V8.React.Engine\nversion=2.0.26\nhardware_acceleration=enabled\naccent=sapphire\nblur_intensity=20px',
-  'manifesto.txt': 'TejasWa\'s Epic OS aims to challenge the boundaries of browser desktop interfaces.\nVisual polish, premium aesthetics, and buttery-smooth animations are our core principles.'
+  'manifesto.txt': 'Tejaswa\'s Epic OS aims to challenge the boundaries of browser desktop interfaces.\nVisual polish, premium aesthetics, and buttery-smooth animations are our core principles.'
 };
 
 export default function TerminalApp({ settings, updateSettings }) {
   const [history, setHistory] = useState([
-    { text: 'TejasWa\'s Epic OS Terminal [Version 2.0.26]', type: 'system' },
+    { text: 'Tejaswa\'s Epic OS Terminal [Version 2.0.26]', type: 'system' },
     { text: 'Type "help" for a list of available commands.', type: 'system' },
     { text: '', type: 'system' }
   ]);
@@ -108,7 +108,7 @@ export default function TerminalApp({ settings, updateSettings }) {
 
       case 'neofetch':
         newHistory.push({
-          text: `             /\\\\         OS: TejasWa's Epic OS Hackathon Edition
+          text: `             /\\\\         OS: Tejaswa's Epic OS Hackathon Edition
             /  \\\\        Kernel: Web-React-Electron-Kernel v9.4
            /    \\\\       Shell: Powershell-JS v2.0
           /  /\\  \\\\      Uptime: 2h 43m
@@ -178,8 +178,14 @@ export default function TerminalApp({ settings, updateSettings }) {
         // Normally closes the window, we can just log
         break;
 
+      case 'touch':
+        Object.keys(FILES).add('newfile.txt');
+        newHistory.push({ text: 'Created new file: newfile.txt', type: 'response' });
+        break;
+
       default:
         newHistory.push({ text: `Command not found: "${command}". Type "help" for instructions.`, type: 'error' });
+      
     }
 
     setHistory(newHistory);

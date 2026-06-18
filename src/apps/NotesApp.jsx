@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Edit, Check, FileText } from 'lucide-react';
+import { title } from 'framer-motion/client';
 
 const DEFAULT_NOTES = [
   {
     id: '1',
     title: 'Hackathon Project Plan',
-    content: '## Goals\n- Design high-fidelity browser OS\n- Ensure smooth dragging physics\n- Integrate Web Audio Visualizer\n- Add customizable settings and wallpapers\n\n## Tasks\n- [x] Base Design Tokens\n- [x] Settings UI\n- [x] Music App Synthesis\n- [ ] Deploy to web',
+    content: '## Goals\n- Design awesome browser OS\n- Ensure smooth dragging physics\n- Integrate Web Audio Visualizer\n- Add customizable settings and wallpapers\n\n## Tasks\n- [x] Base Design Tokens\n- [x] Settings UI\n- [x] Music App Synthesis\n- [ ] Deploy to web',
     date: 'Jun 17, 2026'
   },
   {
@@ -13,6 +14,12 @@ const DEFAULT_NOTES = [
     title: 'Quick Scratchpad',
     content: 'Just some quick thoughts: We should add a drawing app (Canvas Paint) and a retro arcade game (Snake) in the browser to show off interactive elements. The user will love double-clicking files and running matrix rain in terminal.',
     date: 'Jun 16, 2026'
+  },
+  {
+    id: '3',
+    title: 'im onto something',
+    content: "they are adding something in our water that makes us pee",
+    date: 'Jun 17, 2026'
   }
 ];
 

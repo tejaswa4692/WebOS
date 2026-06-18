@@ -16,7 +16,7 @@ export default function PaintApp() {
   const [isDrawing, setIsDrawing] = useState(false);
   const [color, setColor] = useState('#0066ff');
   const [brushSize, setBrushSize] = useState(5);
-  const [tool, setTool] = useState('brush'); // brush, eraser
+  const [tool, setTool] = useState('brush'); // brush, eraser, bucket
   const [lastPos, setLastPos] = useState({ x: 0, y: 0 });
 
   // Initialize Canvas background to white on mount
@@ -63,12 +63,17 @@ export default function PaintApp() {
 
   const startDrawing = (e) => {
     const coords = getCoordinates(e);
-    setLastPos(coords);
-    setIsDrawing(true);
+    
+    if (tool === 'bucket') {
+      floodFill(coords.x, coords.y);
+    } else {
+      setLastPos(coords);
+      setIsDrawing(true);
+    }
   };
 
   const draw = (e) => {
-    if (!isDrawing) return;
+    if (!isDrawing || tool === 'bucket') return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
@@ -90,6 +95,77 @@ export default function PaintApp() {
 
   const stopDrawing = () => {
     setIsDrawing(false);
+  };
+
+  const hexToRgb = (hex) => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+      r: parseInt(result[1], 16),
+      g: parseInt(result[2], 16),
+      b: parseInt(result[3], 16)
+    } : { r: 0, g: 0, b: 0 };
+  };
+
+  const floodFill = (x, y) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+    const width = canvas.width;
+    const height = canvas.height;
+    
+    // Get the color of the clicked pixel
+    const index = (Math.floor(y) * width + Math.floor(x)) * 4;
+    const targetR = data[index];
+    const targetG = data[index + 1];
+    const targetB = data[index + 2];
+    const targetA = data[index + 3];
+    
+    // Get fill color
+    const fillRgb = hexToRgb(color);
+    const fillR = fillRgb.r;
+    const fillG = fillRgb.g;
+    const fillB = fillRgb.b;
+    
+    // Check if colors are already the same
+    if (targetR === fillR && targetG === fillG && targetB === fillB) {
+      return;
+    }
+    
+    // BFS flood fill
+    const queue = [[Math.floor(x), Math.floor(y)]];
+    const visited = new Set();
+    
+    while (queue.length > 0) {
+      const [cx, cy] = queue.shift();
+      
+      if (cx < 0 || cx >= width || cy < 0 || cy >= height) continue;
+      
+      const key = `${cx},${cy}`;
+      if (visited.has(key)) continue;
+      visited.add(key);
+      
+      const pixelIndex = (cy * width + cx) * 4;
+      
+      if (data[pixelIndex] === targetR && 
+          data[pixelIndex + 1] === targetG && 
+          data[pixelIndex + 2] === targetB && 
+          data[pixelIndex + 3] === targetA) {
+        
+        data[pixelIndex] = fillR;
+        data[pixelIndex + 1] = fillG;
+        data[pixelIndex + 2] = fillB;
+        
+        queue.push([cx + 1, cy]);
+        queue.push([cx - 1, cy]);
+        queue.push([cx, cy + 1]);
+        queue.push([cx, cy - 1]);
+      }
+    }
+    
+    ctx.putImageData(imageData, 0, 0);
   };
 
   const clearCanvas = () => {
@@ -137,6 +213,12 @@ export default function PaintApp() {
           >
             🧹 Eraser
           </button>
+          <button 
+            onClick={() => setTool('bucket')}
+            style={{ ...styles.toolBtn, ...(tool === 'bucket' ? styles.toolBtnActive : {}) }}
+          >
+            🪣 Bucket
+          </button>
         </div>
 
         {/* Brush Size */}
@@ -153,7 +235,7 @@ export default function PaintApp() {
         </div>
 
         {/* Color Palette */}
-        {tool === 'brush' && (
+        {(tool === 'brush' || tool === 'bucket') && (
           <div style={styles.colorPalette}>
             {COLORS.map(c => (
               <button
@@ -199,7 +281,7 @@ export default function PaintApp() {
           onTouchStart={startDrawing}
           onTouchMove={draw}
           onTouchEnd={stopDrawing}
-          style={styles.canvas}
+          style={{...styles.canvas, cursor: tool === 'bucket' ? 'pointer' : 'crosshair'}}
         />
       </div>
     </div>
@@ -313,7 +395,6 @@ const styles = {
     backgroundColor: '#ffffff',
     boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)',
     borderRadius: '6px',
-    cursor: 'crosshair',
     margin: 'auto',
   }
 };

@@ -1,3 +1,13 @@
 {
-  "tracks": []
+  "tracks": [
+    {
+      "id": "song1",
+      "title": "My Song",
+      "artist": "Unknown",
+      "album": "Local Collection",
+      "url": "/music/song1.mp3",
+      "cover": "/album_cyber.jpg",
+      "colors": ["#a855f7", "#0066ff"]
+    }
+  ]
 }
