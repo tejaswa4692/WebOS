@@ -1,10 +1,5 @@
 # Tejaswa's Epic WebOS
 
-![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square\&logo=react\&logoColor=white)
-![Node.js](https://img.shields.io/badge/Node.js-22-339933?style=flat-square\&logo=node.js\&logoColor=white)
-![Vite](https://img.shields.io/badge/Vite-7-646CFF?style=flat-square\&logo=vite\&logoColor=white)
-![Vercel](https://img.shields.io/badge/Vercel-Deployed-000000?style=flat-square\&logo=vercel\&logoColor=white)
-
 A browser-based desktop environment built with React and Vite.
 
 The primary focus of the project is an interactive Linux-inspired terminal emulator that implements a virtual filesystem and common shell commands entirely in the browser. The desktop environment and bundled applications exist mainly to provide a realistic operating system interface around the terminal experience.
