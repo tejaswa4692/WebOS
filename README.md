@@ -1,16 +1,109 @@
-# React + Vite
+# Tejaswa's Epic WebOS
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square\&logo=react\&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-22-339933?style=flat-square\&logo=node.js\&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-7-646CFF?style=flat-square\&logo=vite\&logoColor=white)
+![Vercel](https://img.shields.io/badge/Vercel-Deployed-000000?style=flat-square\&logo=vercel\&logoColor=white)
 
-Currently, two official plugins are available:
+A browser-based desktop environment built with React and Vite.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+The primary focus of the project is an interactive Linux-inspired terminal emulator that implements a virtual filesystem and common shell commands entirely in the browser. The desktop environment and bundled applications exist mainly to provide a realistic operating system interface around the terminal experience.
 
-## React Compiler
+## Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Terminal
 
-## Expanding the ESLint configuration
+The terminal is the core component of the project and includes:
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+* Linux-inspired command interface
+* Virtual filesystem
+* `ls` directory listing
+* `cat` file reading
+* `touch` file creation
+* `mkdir` directory creation
+* `neofetch` system information
+* Theme management commands
+* Matrix mode
+* Command history
+
+Example:
+
+```bash
+touch notes.txt
+cat notes.txt
+mkdir projects
+ls
+neofetch
+```
+
+### Browser
+
+A browser like app surf internet on :3
+
+### Music player
+
+for ur music needs
+
+### Paint
+
+i mean a mans gotta draw
+
+### A notes app
+
+who doesnt love a nice notes app
+
+### And more coming
+
+## Demo
+
+Live Deployment:
+
+https://web-os-fawn-two.vercel.app
+
+## Installation
+
+Clone the repository:
+
+```bash
+git clone https://github.com/tejaswa4692/WebOS
+```
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Start the development server:
+
+```bash
+npm run dev
+```
+
+Open:
+
+```text
+http://localhost:5173
+```
+
+
+## Technologies Used
+
+* React
+* Vite
+* JavaScript
+* HTML5
+* CSS3
+
+## Future Plans
+
+* An entirely custom python inspired programming lanuage
+* A text editor for that programmign lanuage
+* a file browser to easily see the files you have made
+
+## Screenshots 
+
+![Screenshots](images/1.png)
+![Screenshots](images/2.png)
+![Screenshots](images/3.png)
+![Screenshots](images/4.png)
