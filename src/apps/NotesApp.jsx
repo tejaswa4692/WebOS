@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Edit, Check, FileText } from 'lucide-react';
-import { title } from 'framer-motion/client';
 
 const DEFAULT_NOTES = [
   {
@@ -28,10 +27,11 @@ export default function NotesApp() {
     const saved = localStorage.getItem('tejaswas_webos_notes');
     return saved ? JSON.parse(saved) : DEFAULT_NOTES;
   });
-  
+
   const [activeNoteId, setActiveNoteId] = useState(notes[0]?.id || null);
   const [editingTitle, setEditingTitle] = useState(false);
   const [tempTitle, setTempTitle] = useState('');
+  const [hoveredDeleteId, setHoveredDeleteId] = useState(null);
 
   // Save notes to LocalStorage
   useEffect(() => {
@@ -51,20 +51,19 @@ export default function NotesApp() {
     setActiveNoteId(newNote.id);
   };
 
+  // Deletes a note by id. Stops propagation so clicking the trash icon
+  // doesn't also trigger the parent note-item's onClick (which would
+  // re-select the note we just removed).
   const deleteNote = (id, e) => {
     e.stopPropagation();
     const remaining = notes.filter(n => n.id !== id);
     setNotes(remaining);
-    
+
     if (activeNoteId === id && remaining.length > 0) {
       setActiveNoteId(remaining[0].id);
     } else if (remaining.length === 0) {
       setActiveNoteId(null);
     }
-  };
-
-  const updateContent = (content) => {
-    setNotes(notes.map(n => n.id === activeNoteId ? { ...n, content } : n));
   };
 
   const startEditingTitle = () => {
@@ -78,6 +77,10 @@ export default function NotesApp() {
       setNotes(notes.map(n => n.id === activeNoteId ? { ...n, title: tempTitle } : n));
     }
     setEditingTitle(false);
+  };
+
+  const updateContent = (content) => {
+    setNotes(notes.map(n => n.id === activeNoteId ? { ...n, content } : n));
   };
 
   return (
@@ -110,9 +113,20 @@ export default function NotesApp() {
                 </div>
                 <div style={styles.noteItemRow2}>
                   <span style={styles.noteItemDate}>{note.date}</span>
-                  <button 
+                  <button
                     onClick={(e) => deleteNote(note.id, e)}
-                    style={styles.deleteBtn}
+                    onMouseEnter={() => setHoveredDeleteId(note.id)}
+                    onMouseLeave={() => setHoveredDeleteId(null)}
+                    className="delete-note-btn"
+                    style={{
+                      ...styles.deleteBtn,
+                      opacity: isActive ? 0.7 : 0.45,
+                      color: hoveredDeleteId === note.id
+                        ? '#e05252'
+                        : (isActive ? 'var(--text-primary, #e5e5e5)' : 'var(--text-muted, #999999)'),
+                    }}
+                    title="Delete note"
+                    aria-label={`Delete ${note.title}`}
                   >
                     <Trash2 size={12} />
                   </button>
@@ -221,6 +235,8 @@ const styles = {
     justifyContent: 'center',
     transition: 'background-color 0.2s',
   },
+  // Single definition (the old file had a second `notesList` key further
+  // down that silently overwrote this one, dropping flexDirection/gap/padding)
   notesList: {
     flex: 1,
     overflowY: 'auto',
@@ -265,14 +281,10 @@ const styles = {
     border: 'none',
     outline: 'none',
     cursor: 'pointer',
-    color: 'var(--text-muted)',
-    opacity: 0,
-    transition: 'all 0.2s',
-  },
-  // We trigger delete btn hover display using global css rule or inline styles
-  notesList: {
-    flex: 1,
-    overflowY: 'auto',
+    transition: 'opacity 0.2s, color 0.2s',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   emptyState: {
     padding: '24px 8px',
@@ -377,9 +389,6 @@ if (typeof document !== 'undefined') {
   const styleSheet = document.createElement("style");
   styleSheet.type = "text/css";
   styleSheet.innerText = `
-    .note-item:hover button[style*="deleteBtn"] {
-      opacity: 1;
-    }
     .new-note-btn:hover {
       background-color: var(--accent-light) !important;
     }
