@@ -13,14 +13,17 @@ export default function ContextMenu({ x, y, visible, onClose, onAction }) {
 
   if (!visible) return null;
 
+  const clampedX = Math.min(x, typeof window !== 'undefined' ? window.innerWidth - 190 : x);
+  const clampedY = Math.min(y, typeof window !== 'undefined' ? window.innerHeight - 200 : y);
+
   return (
     <div 
       className="glass-panel"
       style={{
         position: 'absolute',
-        left: x,
-        top: y,
-        zIndex: 999999,
+        left: Math.max(8, clampedX),
+        top: Math.max(8, clampedY),
+        zIndex: 100005,
         padding: '6px',
         width: '180px',
         display: 'flex',

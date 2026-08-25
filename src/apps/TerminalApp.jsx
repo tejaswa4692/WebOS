@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { runPyrite } from '../utils/pyrite';
 
 // ── Filesystem root ──────────────────────────────────────────────────────
 const ROOT = '/home/tejaswa';
@@ -21,6 +22,41 @@ function buildInitialFiles() {
     [`${ROOT}/manifesto.txt`]: {
       type: 'file',
       content: 'Tejaswa\'s Epic OS aims to challenge the boundaries of browser desktop interfaces.\nVisual polish, premium aesthetics, and buttery-smooth animations are our core principles.'
+    },
+    [`${ROOT}/documents/fizzbuzz.pyt`]: {
+      type: 'file',
+      content: `# FizzBuzz in Pyrite
+# A cool Python-inspired programming language!
+
+fn fizzbuzz(limit):
+    for i in range(1, limit + 1):
+        if i % 3 == 0 and i % 5 == 0:
+            print("FizzBuzz")
+        elif i % 3 == 0:
+            print("Fizz")
+        elif i % 5 == 0:
+            print("Buzz")
+        else:
+            print(i)
+
+print("--- Running FizzBuzz on 15 items ---")
+fizzbuzz(15)
+print("--- Done ---")`
+    },
+    [`${ROOT}/documents/fibonacci.pyt`]: {
+      type: 'file',
+      content: `# Recursive Fibonacci in Pyrite
+# Showcases function definition, condition blocks, recursion and math
+
+fn fib(n):
+    if n <= 1:
+        return n
+    return fib(n - 1) + fib(n - 2)
+
+print("Calculating Fibonacci of 8...")
+result = fib(8)
+print("Fibonacci(8) is:")
+print(result)`
     },
   };
 }
@@ -124,8 +160,7 @@ function displayPath(path) {
   return path;
 }
 
-export default function TerminalApp({ settings, updateSettings }) {
-  const [files, setFiles] = useState(buildInitialFiles);
+export default function TerminalApp({ settings, updateSettings, files, setFiles }) {
   const [cwd, setCwd] = useState(ROOT);
   const [history, setHistory] = useState([
     { text: 'Tejaswa\'s Epic OS Terminal [Version 2.0.26]', type: 'system' },
@@ -223,6 +258,7 @@ export default function TerminalApp({ settings, updateSettings }) {
   mv [src] [dest]          Rename / move a file or directory
   cp [src] [dest]          Copy a file or directory
   stat [path]              Show file/directory metadata
+  pyrite [file]            Run a Pyrite (.pyt) script file
   theme [color]            Change accent (sapphire emerald sunset ruby purple)
   date                     Display current date & time
   joke                     Random developer joke
@@ -688,6 +724,42 @@ Access: -rw-r--r--`, 'response');
         setMatrixActive(prev => !prev);
         push(`Matrix rain ${!matrixActive ? 'ACTIVATED' : 'DEACTIVATED'}.`);
         break;
+
+      // ── pyrite ─────────────────────────────────────────────────────────
+      case 'pyrite': {
+        const t = tokens[1];
+        if (!t) {
+          push([
+            '💎 Pyrite Programming Language v1.0.0 (Python-inspired, sparkling)',
+            'Usage: pyrite [file.pyt]     Run a Pyrite script file.',
+            'Try running our example:  pyrite documents/fizzbuzz.pyt',
+            '                   or:  pyrite documents/fibonacci.pyt'
+          ], 'system');
+          break;
+        }
+        const dest = resolvePath(cwd, t);
+        const entry = newFiles[dest];
+        if (!dest.endsWith('.pyt') && !dest.endsWith('.pyr')) {
+          push(`pyrite: ${t}: File does not have a Pyrite extension (.pyt or .pyr)`, 'error');
+          break;
+        }
+        if (!entry) {
+          push(`pyrite: ${t}: File not found`, 'error');
+          break;
+        }
+        if (entry.type === 'dir') {
+          push(`pyrite: ${t}: Is a directory`, 'error');
+          break;
+        }
+        try {
+          push(`[Pyrite Interpreter] Running: ${getBaseName(dest)}...`, 'system');
+          runPyrite(entry.content, (line) => push(line, 'response'));
+          push(`[Pyrite Interpreter] Execution completed successfully.`, 'success');
+        } catch (err) {
+          push(`[Pyrite Interpreter] Execution failed.`, 'error');
+        }
+        break;
+      }
 
       // ── exit ───────────────────────────────────────────────────────────
       case 'exit':

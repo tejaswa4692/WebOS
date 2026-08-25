@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Power, ShieldAlert, Monitor, Music, Terminal, Globe, FileText, Paintbrush } from 'lucide-react';
+import { Search, Power, ShieldAlert, Monitor, Music, Terminal, Globe, FileText, Paintbrush, Code2, HardDrive } from 'lucide-react';
 
 const ALL_APPS = [
   { id: 'settings', title: 'Settings', icon: Monitor, description: 'Personalize theme and system parameters' },
@@ -8,7 +8,9 @@ const ALL_APPS = [
   { id: 'terminal', title: 'System Terminal', icon: Terminal, description: 'Command line virtual shell' },
   { id: 'browser', title: 'Browser', icon: Globe, description: 'Surf mock websites and play space games' },
   { id: 'notes', title: 'Notes Editor', icon: FileText, description: 'Edit and save local notebooks' },
-  { id: 'paint', title: 'Paint Board', icon: Paintbrush, description: 'Draw sketches and download designs' }
+  { id: 'paint', title: 'Paint Board', icon: Paintbrush, description: 'Draw sketches and download designs' },
+  { id: 'pyrite_ide', title: 'Pyrite IDE', icon: Code2, description: 'Code editor and console runner for Pyrite (.pyt)' },
+  { id: 'file_explorer', title: 'File Explorer', icon: HardDrive, description: 'a file explorer app for the desktop' }
 ];
 
 export default function StartMenu({ isOpen, onOpenApp, onClose, onPowerOff }) {
@@ -120,10 +122,13 @@ const styles = {
   container: {
     position: 'absolute',
     bottom: '60px',
-    left: 'calc(50% - 240px)',
+    left: '50%',
+    transform: 'translateX(-50%)',
     width: '480px',
+    maxWidth: 'calc(100vw - 32px)',
     height: '420px',
-    zIndex: 99999,
+    maxHeight: 'calc(100vh - 100px)',
+    zIndex: 100000,
     display: 'flex',
     flexDirection: 'column',
     overflow: 'hidden',

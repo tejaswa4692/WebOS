@@ -12,7 +12,8 @@ const PINNED_APPS = [
   { id: 'terminal', title: 'Terminal', icon: '💻' },
   { id: 'browser', title: 'Browser', icon: '🌐' },
   { id: 'notes', title: 'Notes', icon: '📝' },
-  { id: 'paint', title: 'Paint', icon: '🎨' }
+  { id: 'paint', title: 'Paint', icon: '🎨' },
+  { id: 'pyrite_ide', title: 'Pyrite IDE', icon: '💎' }
 ];
 
 export default function Taskbar({
@@ -414,7 +415,7 @@ const styles = {
     borderRadius: 'var(--border-radius-lg)',
     boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
     position: 'relative',
-    zIndex: 999999,
+    zIndex: 90000,
   },
   startBtn: {
     padding: '6px 12px',
@@ -521,6 +522,7 @@ const styles = {
     bottom: '56px',
     right: '84px',
     width: '260px',
+    maxWidth: 'calc(100vw - 32px)',
     padding: '16px',
     display: 'flex',
     flexDirection: 'column',
@@ -590,6 +592,7 @@ const styles = {
     bottom: '56px',
     right: '10px',
     width: '260px',
+    maxWidth: 'calc(100vw - 32px)',
     padding: '16px',
     background: 'rgba(var(--bg-panel-rgb), 0.82)',
     boxShadow: '0 24px 48px rgba(0,0,0,0.5)',
@@ -649,6 +652,7 @@ const styles = {
     bottom: '56px',
     right: '200px',
     width: '300px',
+    maxWidth: 'calc(100vw - 32px)',
     maxHeight: '360px',
     background: 'rgba(var(--bg-panel-rgb), 0.85)',
     boxShadow: '0 24px 48px rgba(0,0,0,0.5)',

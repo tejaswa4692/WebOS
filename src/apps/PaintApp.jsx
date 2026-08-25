@@ -298,14 +298,16 @@ const styles = {
     backgroundColor: '#f1f5f9',
   },
   toolbar: {
-    height: '52px',
+    minHeight: '52px',
+    height: 'auto',
     backgroundColor: '#ffffff',
     borderBottom: '1px solid #cbd5e1',
     display: 'flex',
     alignItems: 'center',
-    padding: '0 12px',
+    padding: '6px 12px',
     justifyContent: 'space-between',
     gap: '12px',
+    flexWrap: 'wrap',
     zIndex: 10,
   },
   toolGroup: {

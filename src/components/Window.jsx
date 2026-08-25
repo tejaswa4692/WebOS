@@ -69,7 +69,7 @@ export default function Window({
     const handleMouseMove = (e) => {
       if (isDragging) {
         const newX = e.clientX - dragOffset.x;
-        const newY = e.clientY - dragOffset.y;
+        const newY = Math.max(0, e.clientY - dragOffset.y);
         onWindowMove(id, newX, newY);
       } else if (isResizing) {
         const currentCoords = coordsRef.current;
@@ -116,7 +116,7 @@ export default function Window({
     left: isMaximized ? 0 : x,
     top: isMaximized ? 0 : y,
     width: isMaximized ? '100%' : width,
-    height: isMaximized ? 'calc(100% - 48px)' : height, // Subtract taskbar height if maximized
+    height: isMaximized ? 'calc(100% - 60px)' : height, // Subtract taskbar height + margin
     zIndex: zIndex,
     display: isOpen ? 'flex' : 'none',
     boxShadow: isActive ? '0 20px 50px rgba(0, 0, 0, 0.4)' : '0 10px 25px rgba(0,0,0,0.25)',

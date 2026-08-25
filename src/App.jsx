@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { 
   Monitor, Music, Terminal, Globe, FileText, Paintbrush, 
-  RefreshCw, Power, ShieldAlert
+  RefreshCw, Power, ShieldAlert, Code2, HardDrive 
 } from 'lucide-react';
 
 // Import apps
@@ -12,6 +12,8 @@ import TerminalApp from './apps/TerminalApp';
 import BrowserApp from './apps/BrowserApp';
 import NotesApp from './apps/NotesApp';
 import PaintApp from './apps/PaintApp';
+import PyriteIDEApp from './apps/PyriteIDEApp';
+import FileExplorerApp from './apps/FileExplorerApp';
 
 // Import components
 import Window from './components/Window';
@@ -42,6 +44,45 @@ export default function App() {
     return saved ? JSON.parse(saved) : DEFAULT_SETTINGS;
   });
 
+
+  const [virtualFiles, setVirtualFiles] = useState(() => {
+    const saved = localStorage.getItem('tejaswas_webos_files');
+    if (saved) return JSON.parse(saved);
+
+    const ROOT = '/home/tejaswa';
+    return {
+      '/': { type: 'dir' },
+      '/home': { type: 'dir' },
+      [ROOT]: { type: 'dir' },
+      [`${ROOT}/documents`]: { type: 'dir' },
+      [`${ROOT}/downloads`]: { type: 'dir' },
+      [`${ROOT}/welcome.txt`]: {
+        type: 'file',
+        content: 'Welcome to Tejaswa\'s Epic OS Terminal!\nFeel free to explore our virtual file system.\nType "help" to see available command instructions.'
+      },
+      [`${ROOT}/system.cfg`]: {
+        type: 'file',
+        content: 'kernel=V8.React.Engine\nversion=2.0.26\nhardware_acceleration=enabled\naccent=sapphire\nblur_intensity=20px'
+      },
+      [`${ROOT}/manifesto.txt`]: {
+        type: 'file',
+        content: 'Tejaswa\'s Epic OS aims to challenge the boundaries of browser desktop interfaces.\nVisual polish, premium aesthetics, and buttery-smooth animations are our core principles.'
+      },
+      [`${ROOT}/documents/fizzbuzz.pyt`]: {
+        type: 'file',
+        content: `# FizzBuzz in Pyrite\n# A cool Python-inspired programming language!\n\nfn fizzbuzz(limit):\n    for i in range(1, limit + 1):\n        if i % 3 == 0 and i % 5 == 0:\n            print("FizzBuzz")\n        elif i % 3 == 0:\n            print("Fizz")\n        elif i % 5 == 0:\n            print("Buzz")\n        else:\n            print(i)\n\nprint("--- Running FizzBuzz on 15 items ---")\nfizzbuzz(15)\nprint("--- Done ---")`
+      },
+      [`${ROOT}/documents/fibonacci.pyt`]: {
+        type: 'file',
+        content: `# Recursive Fibonacci in Pyrite\n# Showcases function definition, condition blocks, recursion and math\n\nfn fib(n):\n    if n <= 1:\n        return n\n    return fib(n - 1) + fib(n - 2)\n\nprint("Calculating Fibonacci of 8...")\nresult = fib(8)\nprint("Fibonacci(8) is:")\nprint(result)`
+      }
+    };
+  });
+
+  useEffect(() => {
+    localStorage.setItem('tejaswas_webos_files', JSON.stringify(virtualFiles));
+  }, [virtualFiles]);
+
   // Windows State Manager
   const [windows, setWindows] = useState([
     { id: 'settings', title: 'Settings', icon: Monitor, isOpen: false, isMinimized: false, isMaximized: false, x: 80, y: 40, w: 720, h: 500, zIndex: 10 },
@@ -49,7 +90,9 @@ export default function App() {
     { id: 'terminal', title: 'System Terminal', icon: Terminal, isOpen: false, isMinimized: false, isMaximized: false, x: 160, y: 110, w: 640, h: 420, zIndex: 12 },
     { id: 'browser', title: 'Browser', icon: Globe, isOpen: false, isMinimized: false, isMaximized: false, x: 200, y: 150, w: 820, h: 540, zIndex: 13 },
     { id: 'notes', title: 'Notes Editor', icon: FileText, isOpen: false, isMinimized: false, isMaximized: false, x: 240, y: 190, w: 720, h: 460, zIndex: 14 },
-    { id: 'paint', title: 'Paint Board', icon: Paintbrush, isOpen: false, isMinimized: false, isMaximized: false, x: 280, y: 230, w: 680, h: 460, zIndex: 15 }
+    { id: 'paint', title: 'Paint Board', icon: Paintbrush, isOpen: false, isMinimized: false, isMaximized: false, x: 280, y: 230, w: 680, h: 460, zIndex: 15 },
+    { id: 'pyrite_ide', title: 'Pyrite Studio IDE', icon: Code2, isOpen: false, isMinimized: false, isMaximized: false, x: 260, y: 130, w: 840, h: 500, zIndex: 16 },
+    { id: 'file_explorer', title: 'File Explorer', icon: HardDrive, isOpen: false, isMinimized: false, isMaximized: false, x: 220, y: 100, w: 780, h: 480, zIndex: 17 }
   ]);
 
   const [activeAppId, setActiveAppId] = useState(null);
@@ -147,7 +190,7 @@ export default function App() {
 
   // Window Focus / Bring to front
   const focusWindow = (id) => {
-    const nextZ = maxZIndex + 1;
+    const nextZ = Math.min(80000, maxZIndex + 1);
     setMaxZIndex(nextZ);
     setWindows(prev => prev.map(w => w.id === id ? { ...w, zIndex: nextZ } : w));
     setActiveAppId(id);
@@ -156,6 +199,7 @@ export default function App() {
 
   // App Launcher
   const openApp = (appId) => {
+    console.log('openApp called with:', appId);
     setWindows(prev => prev.map(w => {
       if (w.id === appId) {
         return { ...w, isOpen: true, isMinimized: false };
@@ -180,7 +224,9 @@ export default function App() {
   };
 
   const handleWindowMove = (id, newX, newY) => {
-    setWindows(prev => prev.map(w => w.id === id ? { ...w, x: newX, y: newY } : w));
+    const clampedX = Math.max(-200, Math.min(window.innerWidth - 100, newX));
+    const clampedY = Math.max(0, Math.min(window.innerHeight - 60, newY));
+    setWindows(prev => prev.map(w => w.id === id ? { ...w, x: clampedX, y: clampedY } : w));
   };
 
   const handleWindowResize = (id, newW, newH) => {
@@ -374,6 +420,20 @@ export default function App() {
                 isSelected={selectedIconId === 'paint'}
                 onSelect={() => setSelectedIconId('paint')}
               />
+              <DesktopIcon 
+                title="Pyrite IDE" 
+                icon={Code2} 
+                onOpen={() => openApp('pyrite_ide')}
+                isSelected={selectedIconId === 'pyrite_ide'}
+                onSelect={() => setSelectedIconId('pyrite_ide')}
+              />
+              <DesktopIcon 
+                title="File Explorer" 
+                icon={HardDrive} 
+                onOpen={() => openApp('file_explorer')}
+                isSelected={selectedIconId === 'file_explorer'}
+                onSelect={() => setSelectedIconId('file_explorer')}
+              />
             </div>
 
             {/* Windows rendering manager panel */}
@@ -404,10 +464,12 @@ export default function App() {
                   >
                     {win.id === 'settings' && <SettingsApp settings={settings} updateSettings={updateSettings} />}
                     {win.id === 'music' && <MusicApp />}
-                    {win.id === 'terminal' && <TerminalApp settings={settings} updateSettings={updateSettings} />}
+                    {win.id === 'terminal' && <TerminalApp settings={settings} updateSettings={updateSettings} files={virtualFiles} setFiles={setVirtualFiles} />}
                     {win.id === 'browser' && <BrowserApp />}
                     {win.id === 'notes' && <NotesApp />}
                     {win.id === 'paint' && <PaintApp />}
+                    {win.id === 'pyrite_ide' && <PyriteIDEApp files={virtualFiles} setFiles={setVirtualFiles} />}
+                    {win.id === 'file_explorer' && <FileExplorerApp files={virtualFiles} setFiles={setVirtualFiles} openApp={openApp} />}
                   </Window>
                 );
               })}
@@ -569,7 +631,7 @@ const styles = {
     position: 'absolute',
     bottom: '64px',
     right: '24px',
-    zIndex: 999999,
+    zIndex: 95000,
     display: 'flex',
     flexDirection: 'column',
     gap: '8px',

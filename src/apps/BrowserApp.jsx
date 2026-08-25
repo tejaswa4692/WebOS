@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, ArrowRight, RotateCw, Home, Search, Bookmark, Globe } from 'lucide-react';
+import { runPyrite } from '../utils/pyrite';
 
 export default function BrowserApp() {
   const [url, setUrl] = useState('moogle://search');
@@ -13,6 +14,22 @@ export default function BrowserApp() {
   const [highScore, setHighScore] = useState(0);
   const [gameOver, setGameOver] = useState(false);
   const [gameActive, setGameActive] = useState(false);
+
+  // Pyrite Docs & Playground state variables
+  const [activeDocsTab, setActiveDocsTab] = useState('intro');
+  const [playgroundCode, setPlaygroundCode] = useState(
+`# Hello Pyrite Playground!
+# Type some Python-like code here
+
+fn greet(name):
+    print("Hello, " + name + "! Welcome to Pyrite.")
+    print("Pyrite is sparkling like a diamond")
+
+greet("Developer")`
+  );
+  const [playgroundOutput, setPlaygroundOutput] = useState([]);
+  const [playgroundError, setPlaygroundError] = useState(null);
+  const [execTime, setExecTime] = useState(null);
 
   const navigateTo = (targetUrl) => {
     const newHistory = history.slice(0, historyIndex + 1);
@@ -248,13 +265,16 @@ export default function BrowserApp() {
       {/* Bookmarks */}
       <div style={styles.bookmarksBar}>
         <button onClick={() => navigateTo('moogle://search')} className="bookmark-btn" style={styles.bookmarkBtn}>
-          🔍 MoogleSearch
+          MoogleSearch
         </button>
         <button onClick={() => navigateTo('moogle://wiki')} className="bookmark-btn" style={styles.bookmarkBtn}>
-          📖 Wiki: Moogle
+          Wiki: Moogle
         </button>
         <button onClick={() => navigateTo('moogle://arcade')} className="bookmark-btn" style={styles.bookmarkBtn}>
-          🎮 Retro Arcade: Snake
+          Retro Arcade: Snake
+        </button>
+        <button onClick={() => navigateTo('moogle://pyrite')} className="bookmark-btn" style={styles.bookmarkBtn}>
+          Pyrite Lang
         </button>
       </div>
 
@@ -314,40 +334,68 @@ export default function BrowserApp() {
                 </div>
 
                 <div style={styles.resultsContainer}>
-                  <div style={styles.resultsStats}>About 3 results found for "{searchQuery}"</div>
-                  
-                  {/* Result 1 */}
-                  <div style={styles.resultItem}>
-                    <div style={styles.resultLink}>https://en.wikipedia.org/wiki/Moogle</div>
-                    <div style={styles.resultTitle} onClick={() => navigateTo('moogle://wiki')}>
-                      Moogle - WikiWeb Encyclopedia
-                    </div>
-                    <div style={styles.resultSnippet}>
-                      Moogle is a hypothetical force or device that cancels or negates gravity. It is a recurring concept in science fiction, particularly in spacecraft propulsion. Explore equations...
-                    </div>
-                  </div>
+                  {(() => {
+                    const allResults = [
+                      {
+                        title: "Pyrite Programming Language - Sparkling & Simple Python-like Language",
+                        link: "moogle://pyrite",
+                        urlDisplay: "https://pyrite-lang.org",
+                        snippet: "Official documentation and interactive playground for Pyrite (.pyt). A lightweight Python-like programming language featuring block structures, recursion, arrays, and standard output.",
+                        keywords: ["pyrite", "pyt", "lang", "programming", "python", "code", "run", "interpreter", "syntax"]
+                      },
+                      {
+                        title: "Moogle - WikiWeb Encyclopedia",
+                        link: "moogle://wiki",
+                        urlDisplay: "https://en.wikipedia.org/wiki/Moogle",
+                        snippet: "Moogle is a hypothetical force or device that cancels or negates gravity. It is a recurring concept in science fiction, particularly in spacecraft propulsion. Explore equations...",
+                        keywords: ["moogle", "gravity", "wiki", "science", "physics", "cavorite"]
+                      },
+                      {
+                        title: "Play Space Snake - Premium Retro Arcade Room",
+                        link: "moogle://arcade",
+                        urlDisplay: "https://moogle-arcade.net/play-snake",
+                        snippet: "Control the pixel serpent in zero gravity. Collect cosmic apples, dodge your own tail, and challenge your high scores in this canvas simulation. Fully GPU-accelerated.",
+                        keywords: ["snake", "arcade", "game", "play", "retro", "score", "apple"]
+                      },
+                      {
+                        title: "TejasWa's Epic OS - Next Generation Web Operating System",
+                        link: "https://moogle-os.org/about",
+                        urlDisplay: "https://moogle-os.org/about",
+                        snippet: "A gorgeous desktop portal that runs entirely inside your browser. Developed for extreme visual polish and premium desktop experience with fluid draggable windows and dynamic blur widgets.",
+                        keywords: ["epic", "os", "webos", "tejaswa", "desktop", "browser", "react"]
+                      }
+                    ];
 
-                  {/* Result 2 */}
-                  <div style={styles.resultItem}>
-                    <div style={styles.resultLink}>https://moogle-arcade.net/play-snake</div>
-                    <div style={styles.resultTitle} onClick={() => navigateTo('moogle://arcade')}>
-                      Play Space Snake - Premium Retro Arcade Room
-                    </div>
-                    <div style={styles.resultSnippet}>
-                      Control the pixel serpent in zero gravity. Collect cosmic apples, dodge your own tail, and challenge your high scores in this canvas simulation. Fully GPU-accelerated.
-                    </div>
-                  </div>
+                    const queryLower = searchQuery.toLowerCase();
+                    const filtered = allResults.filter(item => 
+                      item.keywords.some(k => queryLower.includes(k)) || 
+                      item.title.toLowerCase().includes(queryLower) ||
+                      item.snippet.toLowerCase().includes(queryLower)
+                    );
+                    const displayList = filtered.length > 0 ? filtered : allResults;
 
-                  {/* Result 3 */}
-                  <div style={styles.resultItem}>
-                    <div style={styles.resultLink}>https://moogle-os.org/about</div>
-                    <div style={styles.resultTitle}>
-                      TejasWa's Epic OS - Next Generation Web Operating System
-                    </div>
-                    <div style={styles.resultSnippet}>
-                      A gorgeous desktop portal that runs entirely inside your browser. Developed for extreme visual polish and premium desktop experience with fluid draggable windows and dynamic blur widgets.
-                    </div>
-                  </div>
+                    return (
+                      <>
+                        <div style={styles.resultsStats}>About {displayList.length} results found for "{searchQuery}"</div>
+                        {displayList.map((item, idx) => (
+                          <div key={idx} style={styles.resultItem}>
+                            <div style={styles.resultLink}>{item.urlDisplay}</div>
+                            <div 
+                              style={styles.resultTitle} 
+                              onClick={() => {
+                                if (item.link.startsWith("moogle://")) {
+                                  navigateTo(item.link);
+                                }
+                              }}
+                            >
+                              {item.title}
+                            </div>
+                            <div style={styles.resultSnippet}>{item.snippet}</div>
+                          </div>
+                        ))}
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
             )}
@@ -434,6 +482,362 @@ export default function BrowserApp() {
             </div>
           </div>
         )}
+
+        {/* Pyrite Language Docs & Playground */}
+        {url.startsWith('moogle://pyrite') && (
+          <div style={styles.pyritePage} className="fade-in">
+            {/* Pyrite Sidebar */}
+            <div style={styles.pyriteSidebar}>
+              <div style={styles.pyriteSidebarHeader}>
+                <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#fbbf24', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  💎 Pyrite Lang
+                </span>
+                <span style={{ fontSize: '10px', color: '#9ca3af', marginTop: '2px' }}>v1.0.0</span>
+              </div>
+              <div style={styles.pyriteSidebarNav}>
+                <button 
+                  onClick={() => setActiveDocsTab('intro')} 
+                  style={{ ...styles.pyriteSidebarBtn, ...(activeDocsTab === 'intro' ? styles.pyriteSidebarBtnActive : {}) }}
+                >
+                  🚀 Introduction
+                </button>
+                <button 
+                  onClick={() => setActiveDocsTab('syntax')} 
+                  style={{ ...styles.pyriteSidebarBtn, ...(activeDocsTab === 'syntax' ? styles.pyriteSidebarBtnActive : {}) }}
+                >
+                  📝 Syntax Guide
+                </button>
+                <button 
+                  onClick={() => setActiveDocsTab('stdlib')} 
+                  style={{ ...styles.pyriteSidebarBtn, ...(activeDocsTab === 'stdlib' ? styles.pyriteSidebarBtnActive : {}) }}
+                >
+                  📚 Standard Library
+                </button>
+                <button 
+                  onClick={() => setActiveDocsTab('playground')} 
+                  style={{ ...styles.pyriteSidebarBtn, ...(activeDocsTab === 'playground' ? styles.pyriteSidebarBtnActive : {}) }}
+                >
+                  ⚡ Interactive Playground
+                </button>
+              </div>
+              <div style={styles.pyriteSidebarFooter}>
+                Sparkling like a Python, sharp like a diamond.
+              </div>
+            </div>
+
+            {/* Pyrite Main Content */}
+            <div style={styles.pyriteContent}>
+              {activeDocsTab === 'intro' && (
+                <div style={styles.docsSection}>
+                  <h1 style={styles.docsTitle}>Welcome to Pyrite! 💎</h1>
+                  <p style={styles.docsPara}>
+                    <b>Pyrite</b> is a custom, lightweight, interpreted programming language inspired by Python, designed to run within Tejaswa's Epic WebOS. It combines Python's clean indentation-based style with powerful WebOS integrations.
+                  </p>
+                  
+                  <h2 style={styles.docsSubTitle}>Why Pyrite?</h2>
+                  <p style={styles.docsPara}>
+                    Just like the mineral *pyrite* (often called "fool's gold") sparkles brilliantly and mimics gold, our Pyrite language mimics Python's appearance while running directly in a JavaScript virtual machine. It is designed to be:
+                  </p>
+                  <ul style={styles.docsList}>
+                    <li><b>Clean & Indentation-based:</b> No braces or semicolons required. Code blocks are defined by indentation level.</li>
+                    <li><b>Fully Recursive:</b> Functions support nested closures and full recursion.</li>
+                    <li><b>WebOS-Native:</b> Runs inside the system console terminal and the browser web page alike.</li>
+                    <li><b>Rich Expression System:</b> Seamlessly handles lists, objects, arithmetic, and logic.</li>
+                  </ul>
+
+                  <div style={styles.docsCallout}>
+                    <strong>💡 Pro Tip:</strong> You can create Pyrite files in the terminal with the <code>.pyt</code> or <code>.pyr</code> extension, and execute them using the command: <code>pyrite documents/fizzbuzz.pyt</code>.
+                  </div>
+
+                  <h2 style={styles.docsSubTitle}>A Quick Taste of Pyrite</h2>
+                  <pre style={styles.docsCode}>
+{`# Define a function to generate message
+fn get_greeting(user):
+    return "Hello, " + user + "! Welcome to Pyrite."
+
+# Run a loop
+for i in range(3):
+    print(get_greeting("User " + str(i)))`}
+                  </pre>
+                  
+                  <button onClick={() => {
+                    setPlaygroundCode(
+`# Taste of Pyrite
+fn get_greeting(user):
+    return "Hello, " + user + "! Welcome to Pyrite."
+
+for i in range(3):
+    print(get_greeting("User " + str(i)))`
+                    );
+                    setActiveDocsTab('playground');
+                  }} style={styles.docsActionBtn}>
+                    Try this Example in Playground
+                  </button>
+                </div>
+              )}
+
+              {activeDocsTab === 'syntax' && (
+                <div style={styles.docsSection}>
+                  <h1 style={styles.docsTitle}>Syntax Guide</h1>
+                  <p style={styles.docsPara}>
+                    Pyrite syntax is pythonic, indentation-based, and colon-terminated for structural statements. Let's look at the syntax rules:
+                  </p>
+
+                  <h2 style={styles.docsSubTitle}>1. Variables & Comments</h2>
+                  <p style={styles.docsPara}>
+                    Comments start with a <code>#</code> character. Variables are dynamically typed and assigned using the <code>=</code> sign:
+                  </p>
+                  <pre style={styles.docsCode}>
+{`# This is a comment
+name = "Pyrite Language"
+version = 1.0
+sparkling = True
+tags = ["python", "js", "interpreter"]`}
+                  </pre>
+
+                  <h2 style={styles.docsSubTitle}>2. Functions</h2>
+                  <p style={styles.docsPara}>
+                    Functions are declared using the <code>fn</code> keyword (different from Python's <code>def</code>) and their bodies must be indented:
+                  </p>
+                  <pre style={styles.docsCode}>
+{`fn calculate_area(width, height):
+    return width * height
+
+print(calculate_area(10, 5)) # Outputs 50`}
+                  </pre>
+
+                  <h2 style={styles.docsSubTitle}>3. Conditionals (if, elif, else)</h2>
+                  <p style={styles.docsPara}>
+                    Conditionals evaluate boolean expressions. Instead of <code>and</code>, <code>or</code>, <code>not</code>, Pyrite supports Python keyword expressions natively:
+                  </p>
+                  <pre style={styles.docsCode}>
+{`x = 15
+if x > 20:
+    print("Greater than 20")
+elif x > 10 and x <= 20:
+    print("Between 11 and 20")
+else:
+    print("10 or less")`}
+                  </pre>
+
+                  <h2 style={styles.docsSubTitle}>4. Loops (while & for)</h2>
+                  <p style={styles.docsPara}>
+                    Loops allow repeating code blocks:
+                  </p>
+                  <pre style={styles.docsCode}>
+{`# While loops
+count = 5
+while count > 0:
+    print("Count:", count)
+    count = count - 1
+
+# For loops (requires an iterable list or range)
+for num in range(3):
+    print("Number is:", num)`}
+                  </pre>
+                </div>
+              )}
+
+              {activeDocsTab === 'stdlib' && (
+                <div style={styles.docsSection}>
+                  <h1 style={styles.docsTitle}>Standard Library</h1>
+                  <p style={styles.docsPara}>
+                    Pyrite comes with a small but powerful set of built-in functions:
+                  </p>
+
+                  <table style={styles.docsTable}>
+                    <thead>
+                      <tr>
+                        <th style={styles.docsTh}>Function</th>
+                        <th style={styles.docsTh}>Description</th>
+                        <th style={styles.docsTh}>Example</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td style={styles.docsTd}><code>print(*args)</code> / <code>show(*args)</code></td>
+                        <td style={styles.docsTd}>Outputs values to the console separated by spaces.</td>
+                        <td style={styles.docsTd}><code>print("Val:", 10)</code></td>
+                      </tr>
+                      <tr>
+                        <td style={styles.docsTd}><code>range(start, end[, step])</code></td>
+                        <td style={styles.docsTd}>Generates a list of numbers from start (inclusive) to end (exclusive).</td>
+                        <td style={styles.docsTd}><code>range(1, 10, 2)</code></td>
+                      </tr>
+                      <tr>
+                        <td style={styles.docsTd}><code>len(iterable)</code></td>
+                        <td style={styles.docsTd}>Returns the length of a string or array.</td>
+                        <td style={styles.docsTd}><code>len([1, 2, 3])</code></td>
+                      </tr>
+                      <tr>
+                        <td style={styles.docsTd}><code>abs(x)</code></td>
+                        <td style={styles.docsTd}>Returns the absolute value of a number.</td>
+                        <td style={styles.docsTd}><code>abs(-5)</code></td>
+                      </tr>
+                      <tr>
+                        <td style={styles.docsTd}><code>random()</code></td>
+                        <td style={styles.docsTd}>Returns a random float between 0 (inclusive) and 1 (exclusive).</td>
+                        <td style={styles.docsTd}><code>random()</code></td>
+                      </tr>
+                      <tr>
+                        <td style={styles.docsTd}><code>randint(a, b)</code></td>
+                        <td style={styles.docsTd}>Returns a random integer between a and b (inclusive).</td>
+                        <td style={styles.docsTd}><code>randint(1, 10)</code></td>
+                      </tr>
+                      <tr>
+                        <td style={styles.docsTd}><code>str(x)</code> / <code>num(x)</code> / <code>int(x)</code></td>
+                        <td style={styles.docsTd}>Type conversion helpers for string, number, and integer.</td>
+                        <td style={styles.docsTd}><code>str(10) + " items"</code></td>
+                      </tr>
+                    </tbody>
+                  </table>
+
+                  <h2 style={styles.docsSubTitle}>Array Methods</h2>
+                  <p style={styles.docsPara}>
+                    Because Pyrite arrays are powered by JS arrays, you can invoke array methods like <code>.push(item)</code>, <code>.pop()</code>, and <code>.join(sep)</code> directly!
+                  </p>
+                  <pre style={styles.docsCode}>
+{`arr = []
+arr.push("first")
+arr.push("second")
+print("Array joined:", arr.join(" -> "))`}
+                  </pre>
+                </div>
+              )}
+
+              {activeDocsTab === 'playground' && (
+                <div style={styles.playgroundContainer}>
+                  <h1 style={{ ...styles.docsTitle, marginBottom: '6px' }}>⚡ Interactive Pyrite Playground</h1>
+                  <p style={{ ...styles.docsPara, marginBottom: '14px' }}>
+                    Write, run, and experiment with Pyrite code in real time!
+                  </p>
+
+                  <div style={styles.playgroundGrid}>
+                    {/* Left: Code Editor */}
+                    <div style={styles.editorPanel}>
+                      <div style={styles.panelHeader}>
+                        <span>📝 Source Code (.pyt)</span>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <span style={{ fontSize: '11px', color: '#cbd5e1' }}>Examples:</span>
+                          <select 
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val === 'fizzbuzz') {
+                                setPlaygroundCode(
+`# FizzBuzz in Pyrite
+fn fizzbuzz(limit):
+    for i in range(1, limit + 1):
+        if i % 3 == 0 and i % 5 == 0:
+            print("FizzBuzz")
+        elif i % 3 == 0:
+            print("Fizz")
+        elif i % 5 == 0:
+            print("Buzz")
+        else:
+            print(i)
+
+fizzbuzz(15)`
+                                );
+                              } else if (val === 'fib') {
+                                setPlaygroundCode(
+`# Recursive Fibonacci
+fn fib(n):
+    if n <= 1:
+        return n
+    return fib(n - 1) + fib(n - 2)
+
+for i in range(8):
+    print("fib(" + str(i) + ") = " + str(fib(i)))`
+                                );
+                              } else if (val === 'primes') {
+                                setPlaygroundCode(
+`# Prime Number Finder
+fn is_prime(n):
+    if n <= 1:
+        return False
+    for i in range(2, n):
+        if n % i == 0:
+            return False
+    return True
+
+print("Primes under 30:")
+primes = []
+for i in range(1, 30):
+    if is_prime(i):
+        primes.push(i)
+
+print(primes)`
+                                );
+                              }
+                            }}
+                            style={styles.playgroundSelect}
+                          >
+                            <option value="">-- Choose Example --</option>
+                            <option value="fizzbuzz">FizzBuzz Loop</option>
+                            <option value="fib">Fibonacci Recursion</option>
+                            <option value="primes">Prime Finder</option>
+                          </select>
+                        </div>
+                      </div>
+                      <textarea
+                        value={playgroundCode}
+                        onChange={(e) => setPlaygroundCode(e.target.value)}
+                        style={styles.codeTextarea}
+                        spellCheck="false"
+                      />
+                      <button 
+                        onClick={() => {
+                          const logs = [];
+                          setPlaygroundOutput([]);
+                          setPlaygroundError(null);
+                          const start = performance.now();
+                          try {
+                            runPyrite(playgroundCode, (line) => {
+                              logs.push(line);
+                            });
+                            const end = performance.now();
+                            setPlaygroundOutput(logs);
+                            setExecTime((end - start).toFixed(1));
+                          } catch (err) {
+                            setPlaygroundError(err.message);
+                            setPlaygroundOutput(logs);
+                            setExecTime(null);
+                          }
+                        }}
+                        style={styles.runButton}
+                      >
+                        ▶ Run Code
+                      </button>
+                    </div>
+
+                    {/* Right: Output Console */}
+                    <div style={styles.consolePanel}>
+                      <div style={styles.panelHeader}>
+                        <span>💻 Console Output</span>
+                        {execTime && (
+                          <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 'bold' }}>
+                            Success ({execTime}ms)
+                          </span>
+                        )}
+                      </div>
+                      <div style={styles.consoleBody}>
+                        {playgroundError && (
+                          <div style={styles.consoleErrorLine}>{playgroundError}</div>
+                        )}
+                        {playgroundOutput.map((line, idx) => (
+                          <div key={idx} style={styles.consoleLine}>{line}</div>
+                        ))}
+                        {playgroundOutput.length === 0 && !playgroundError && (
+                          <div style={styles.consolePlaceholder}>Click "Run Code" to see the output here...</div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -502,6 +906,8 @@ const styles = {
     padding: '0 12px',
     alignItems: 'center',
     gap: '12px',
+    overflowX: 'auto',
+    whiteSpace: 'nowrap',
   },
   bookmarkBtn: {
     background: 'none',
@@ -791,6 +1197,246 @@ const styles = {
     lineHeight: '1.4',
     textAlign: 'center',
     borderTop: '2px solid #374151',
+  },
+  pyritePage: {
+    backgroundColor: '#0f172a',
+    color: '#f8fafc',
+    minHeight: '100%',
+    display: 'flex',
+    flexDirection: 'row',
+  },
+  pyriteSidebar: {
+    width: '220px',
+    backgroundColor: '#1e293b',
+    borderRight: '1px solid #334155',
+    display: 'flex',
+    flexDirection: 'column',
+    padding: '16px 0',
+  },
+  pyriteSidebarHeader: {
+    padding: '0 16px 16px 16px',
+    borderBottom: '1px solid #334155',
+    display: 'flex',
+    flexDirection: 'column',
+    marginBottom: '16px',
+  },
+  pyriteSidebarNav: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '4px',
+    flex: 1,
+    padding: '0 8px',
+  },
+  pyriteSidebarBtn: {
+    background: 'none',
+    border: 'none',
+    outline: 'none',
+    textAlign: 'left',
+    padding: '8px 12px',
+    borderRadius: '6px',
+    color: '#cbd5e1',
+    cursor: 'pointer',
+    fontSize: '13px',
+    fontWeight: '500',
+    transition: 'all 0.2s',
+  },
+  pyriteSidebarBtnActive: {
+    backgroundColor: '#334155',
+    color: '#fbbf24',
+  },
+  pyriteSidebarFooter: {
+    padding: '16px',
+    fontSize: '11px',
+    color: '#64748b',
+    borderTop: '1px solid #334155',
+    textAlign: 'center',
+  },
+  pyriteContent: {
+    flex: 1,
+    padding: '24px',
+    overflowY: 'auto',
+    backgroundColor: '#0f172a',
+  },
+  docsSection: {
+    maxWidth: '800px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '12px',
+  },
+  docsTitle: {
+    fontSize: '28px',
+    fontWeight: 'bold',
+    color: '#f8fafc',
+    marginBottom: '8px',
+  },
+  docsSubTitle: {
+    fontSize: '20px',
+    fontWeight: '600',
+    color: '#fbbf24',
+    marginTop: '16px',
+    marginBottom: '4px',
+  },
+  docsPara: {
+    fontSize: '14px',
+    lineHeight: '1.6',
+    color: '#cbd5e1',
+  },
+  docsList: {
+    fontSize: '14px',
+    lineHeight: '1.6',
+    color: '#cbd5e1',
+    paddingLeft: '20px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '6px',
+  },
+  docsCallout: {
+    backgroundColor: '#1e293b',
+    borderLeft: '4px solid #fbbf24',
+    padding: '12px 16px',
+    borderRadius: '0 8px 8px 0',
+    fontSize: '13px',
+    lineHeight: '1.5',
+    color: '#e2e8f0',
+    margin: '12px 0',
+  },
+  docsCode: {
+    backgroundColor: '#1e293b',
+    padding: '14px',
+    borderRadius: '8px',
+    fontFamily: 'var(--font-mono)',
+    fontSize: '13px',
+    lineHeight: '1.5',
+    color: '#f8fafc',
+    border: '1px solid #334155',
+    overflowX: 'auto',
+    whiteSpace: 'pre',
+  },
+  docsActionBtn: {
+    backgroundColor: '#fbbf24',
+    color: '#0f172a',
+    border: 'none',
+    padding: '10px 18px',
+    borderRadius: '6px',
+    fontSize: '13px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    alignSelf: 'flex-start',
+    marginTop: '8px',
+    transition: 'background-color 0.2s',
+  },
+  docsTable: {
+    width: '100%',
+    borderCollapse: 'collapse',
+    marginTop: '12px',
+    marginBottom: '16px',
+  },
+  docsTh: {
+    textAlign: 'left',
+    padding: '10px 12px',
+    borderBottom: '2px solid #334155',
+    fontSize: '13px',
+    fontWeight: 'bold',
+    color: '#fbbf24',
+  },
+  docsTd: {
+    padding: '10px 12px',
+    borderBottom: '1px solid #1e293b',
+    fontSize: '13px',
+    color: '#cbd5e1',
+  },
+  playgroundContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    height: '100%',
+  },
+  playgroundGrid: {
+    display: 'flex',
+    gap: '16px',
+    flex: 1,
+    minHeight: '400px',
+  },
+  editorPanel: {
+    flex: 1.2,
+    display: 'flex',
+    flexDirection: 'column',
+    backgroundColor: '#1e293b',
+    border: '1px solid #334155',
+    borderRadius: '8px',
+    overflow: 'hidden',
+  },
+  consolePanel: {
+    flex: 0.8,
+    display: 'flex',
+    flexDirection: 'column',
+    backgroundColor: '#020617',
+    border: '1px solid #1e293b',
+    borderRadius: '8px',
+    overflow: 'hidden',
+  },
+  panelHeader: {
+    padding: '10px 14px',
+    backgroundColor: '#0f172a',
+    borderBottom: '1px solid #334155',
+    fontSize: '12px',
+    fontWeight: 'bold',
+    color: '#cbd5e1',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  codeTextarea: {
+    flex: 1,
+    backgroundColor: '#0f172a',
+    color: '#e2e8f0',
+    fontFamily: 'var(--font-mono)',
+    fontSize: '13px',
+    padding: '12px',
+    border: 'none',
+    outline: 'none',
+    resize: 'none',
+    lineHeight: '1.5',
+  },
+  runButton: {
+    backgroundColor: '#fbbf24',
+    color: '#0f172a',
+    border: 'none',
+    padding: '12px',
+    fontSize: '14px',
+    fontWeight: 'bold',
+    cursor: 'pointer',
+    transition: 'background-color 0.2s',
+  },
+  consoleBody: {
+    flex: 1,
+    padding: '12px',
+    fontFamily: 'var(--font-mono)',
+    fontSize: '12px',
+    overflowY: 'auto',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '4px',
+  },
+  consoleLine: {
+    color: '#10b981',
+    whiteSpace: 'pre-wrap',
+  },
+  consoleErrorLine: {
+    color: '#ef4444',
+    whiteSpace: 'pre-wrap',
+  },
+  consolePlaceholder: {
+    color: '#475569',
+    fontStyle: 'italic',
+  },
+  playgroundSelect: {
+    backgroundColor: '#0f172a',
+    color: '#e2e8f0',
+    border: '1px solid #334155',
+    borderRadius: '4px',
+    fontSize: '11px',
+    padding: '2px 4px',
+    outline: 'none',
   }
 };
 
@@ -814,6 +1460,16 @@ if (typeof document !== 'undefined') {
     }
     .search-submit-btn:hover {
       background-color: #f1f3f4 !important;
+    }
+    .pyrite-sidebar-btn:hover {
+      background-color: rgba(255,255,255,0.05) !important;
+      color: #fbbf24 !important;
+    }
+    .pyrite-run-btn:hover {
+      background-color: #f59e0b !important;
+    }
+    .pyrite-action-btn:hover {
+      background-color: #f59e0b !important;
     }
   `;
   document.head.appendChild(styleSheet);
